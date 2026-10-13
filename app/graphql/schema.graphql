@@ -1,0 +1,47 @@
+directive @isAuthenticated on FIELD_DEFINITION
+directive @isAdmin on FIELD_DEFINITION
+
+type User {
+    id: ID!
+    email: String!
+    isActive: Boolean!
+    isAdmin: Boolean!
+    createdAt: String!
+}
+
+type Client {
+    id: ID!
+    clientId: String!
+    name: String!
+    isConfidential: Boolean!
+    redirectUris: [String!]!
+    createdAt: String!
+}
+
+type AuditEvent {
+    id: ID!
+    eventType: String!
+    actorId: ID
+    ip: String
+    userAgent: String
+    metadata: String!
+    createdAt: String!
+}
+
+type AuthPayload {
+    accessToken: String!
+    tokenType: String!
+}
+
+type Query {
+    me: User! @isAuthenticated
+    users(search: String, limit: Int = 20, offset: Int = 0): [User!]! @isAdmin
+    clients: [Client!]! @isAdmin
+    auditEvents(eventType: String, limit: Int = 20, offset: Int = 0): [AuditEvent!]! @isAdmin
+}
+
+type Mutation {
+    registerUser(email: String!, password: String!): AuthPayload!
+    createClient(name: String!, isConfidential: Boolean!): Client! @isAdmin
+    disableUser(userId: ID!): User! @isAdmin
+}
