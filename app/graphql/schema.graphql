@@ -1,6 +1,11 @@
 directive @isAuthenticated on FIELD_DEFINITION
 directive @isAdmin on FIELD_DEFINITION
 
+type AuthPayload {
+    accessToken: String!
+    tokenType: String!
+}
+
 type User {
     id: ID!
     email: String!
@@ -14,34 +19,78 @@ type Client {
     clientId: String!
     name: String!
     isConfidential: Boolean!
+    scopes: [String!]!
+    grantTypes: [String!]!
+    isActive: Boolean!
     redirectUris: [String!]!
     createdAt: String!
+    updatedAt: String
+    clientSecret: String
 }
 
 type AuditEvent {
     id: ID!
     eventType: String!
     actorId: ID
-    ip: String
+    clientId: String
     userAgent: String
     metadata: String!
     createdAt: String!
 }
 
-type AuthPayload {
-    accessToken: String!
-    tokenType: String!
+type Session {
+    id: ID!
+    userId: ID!
+    clientId: String!
+    familyId: String!
+    ip: String
+    userAgent: String
+    createdAt: String!
+    lastSeenAt: String!
+    revokedAt: String
 }
 
+type RefreshTokenInfo {
+    id: ID!
+    familyId: String!
+    clientId: String!
+    scope: String!
+    expiresAt: String!
+    usedAt: String
+    revokedAt: String
+    createdAt: String!
+}
+
+type ClientSecretPayload {
+    clientId: String!
+    clientSecret: String!
+}
+
+
 type Query {
-    me: User! @isAuthenticated
-    users(search: String, limit: Int = 20, offset: Int = 0): [User!]! @isAdmin
-    clients: [Client!]! @isAdmin
-    auditEvents(eventType: String, limit: Int = 20, offset: Int = 0): [AuditEvent!]! @isAdmin
+    me: User
+    users(search: String, limit: Int, offset: Int): [User!]!
+    clients: [Client!]!
+    auditEvents(eventType: String, limit: Int, offset: Int): [AuditEvent!]!
+    sessions(userId: ID, activeOnly: Boolean): [Session!]! @isAdmin
+    refreshTokens(userId: ID, familyId: String): [RefreshTokenInfo!]! @isAdmin
 }
 
 type Mutation {
     registerUser(email: String!, password: String!): AuthPayload!
-    createClient(name: String!, isConfidential: Boolean!): Client! @isAdmin
+
+    createClient(
+        name: String!
+        isConfidential: Boolean!
+        scopes: [String!]
+        grantTypes: [String!]
+        redirectUris: [String!]
+    ): Client! @isAdmin
+
     disableUser(userId: ID!): User! @isAdmin
+
+    revokeUserSessions(userId: ID!): Int! @isAdmin
+    rotateClientSecret(clientId: ID!): ClientSecretPayload! @isAdmin
+    enableClient(clientId: ID!): Client! @isAdmin
+    disableClient(clientId: ID!): Client! @isAdmin
 }

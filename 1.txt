@@ -1,0 +1,25 @@
+{
+  "email": "user@example.com",
+  "password": "473658734587364hbfvjhbdfjhbvd"
+}
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkxODkwOTE5LCJleHAiOjE3OTE4OTQ1MTksImp0aSI6ImU5NWQ2OTFjLTE3MzItNGY3NC04MWY5LTQ5ZjVkNzAyMDM2NSIsInR5cCI6ImFjY2VzcyJ9.9pfowkY9FbkzM2egK95yP1rliWFI7H1DrkSTT8n0V2k
+
+
+{
+  "email": "user111@example.com",
+  "password": "hfdvb32hjb23jbh"
+}
+
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTExQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkxODg5ODkxLCJleHAiOjE3OTE4OTM0OTEsImp0aSI6IjNiZjFlOTk0LTc2OTctNGExOS1iNTU3LWZlZTNhOTMxYTJiYyIsInR5cCI6ImFjY2VzcyJ9.Lmu2mhv_cQsXSDrzbl27kvClHTwcDv5zVnZQGigFa1s",
+  "token_type": "bearer"
+}
+
+
+python scripts/gen_keys.py
+docker run -d --name vault-redis -p 6379:6379 redis:7-alpine
+alembic upgrade head   # или create_all
+python run.py
+
+
+uvicorn demo_rp.main:app --port 8001

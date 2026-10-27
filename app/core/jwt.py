@@ -1,50 +1,34 @@
-from datetime import datetime, timedelta, timezone
-from uuid import uuid4
+from app.core.security.jwt_rsa import (
+    sign_access_token,
+    verify_token
+)
 
-from jose import jwt, JWTError
 
-from app.config import settings
+LEGACY_CLIENT_ID = "vault-internal"
 
 
 def create_access_token(sub, ttl_min=None):
-    now = datetime.now(timezone.utc)
+    """
+    Создаёт access-токен для внутренних (легаси) эндпоинтов /auth/*.
 
-    minutes = (
-        ttl_min
-        if ttl_min is not None
-        else settings.access_token_ttl_min
-    )
+    sub — идентификатор пользователя (user.id).
+    Токен подписывается RS256 с aud="vault-internal".
+    """
+    ttl_sec = None if ttl_min is None else ttl_min * 60
 
-    data = {
-        "sub": str(sub),
-        "iat": now,
-        "exp": now + timedelta(minutes=minutes),
-        "jti": str(uuid4()),
-        "typ": "access"
-    }
-
-    return jwt.encode(
-        data,
-        settings.jwt_secret,
-        algorithm=settings.jwt_algorithm
+    return sign_access_token(
+        sub=str(sub),
+        client_id=LEGACY_CLIENT_ID,
+        scopes=[],
+        ttl_sec=ttl_sec
     )
 
 
 def decode_token(token):
-    try:
-        data = jwt.decode(
-            token,
-            settings.jwt_secret,
-            algorithms=[settings.jwt_algorithm]
-        )
+    """
+    Проверяет access-токен, выданный через /auth/* (aud="vault-internal").
 
-        if data.get("typ") != "access":
-            raise ValueError("Invalid token type")
-
-        if not data.get("sub"):
-            raise ValueError("Invalid token subject")
-
-        return data
-
-    except JWTError:
-        raise ValueError("Invalid or expired token")
+    Бросает ValueError при невалидной подписи, истёкшем сроке
+    или неверной аудитории.
+    """
+    return verify_token(token, audience=LEGACY_CLIENT_ID)

@@ -32,10 +32,7 @@ def register(
 ):
     email = str(data.email).lower()
 
-    existing = db.scalar(
-        select(User).where(User.email == email)
-    )
-
+    existing = db.scalar(select(User).where(User.email == email))
     if existing:
         raise HTTPException(400, "Email already registered")
 
@@ -60,11 +57,10 @@ def register(
         user_agent=request.headers.get("user-agent"),
         commit=False
     )
-
     db.commit()
 
     return {
-        "access_token": create_access_token(email),
+        "access_token": create_access_token(user.id),
         "token_type": "bearer"
     }
 
@@ -77,9 +73,7 @@ def login(
 ):
     email = str(data.email).lower()
 
-    user = db.scalar(
-        select(User).where(User.email == email)
-    )
+    user = db.scalar(select(User).where(User.email == email))
 
     if not user or not user.is_active or not verify_password(
         data.password, user.hashed_password
@@ -91,7 +85,6 @@ def login(
             user_agent=request.headers.get("user-agent"),
             metadata={"email": email}
         )
-
         raise HTTPException(401, "Invalid credentials")
 
     write_event(
@@ -103,12 +96,12 @@ def login(
     )
 
     return {
-        "access_token": create_access_token(email),
+        "access_token": create_access_token(user.id),
         "token_type": "bearer"
     }
 
 
-@router.get("/me") #получение данных текущего пользователя 
+@router.get("/me")
 def me(user=Depends(get_current_user)):
     return {
         "id": user.id,

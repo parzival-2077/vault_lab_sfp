@@ -1,7 +1,8 @@
 from sqlalchemy import select
 
 from app.models.models import User
-from app.core.jwt import decode_token
+from app.core.security.jwt_rsa import verify_token
+from app.redis_client import is_blacklisted
 
 
 async def get_context_value(request, data):
@@ -14,15 +15,15 @@ async def get_context_value(request, data):
         token = authorization.split(" ", 1)[1]
 
         try:
-            payload = decode_token(token)
-
-            user = db.scalar(
-                select(User).where(
-                    User.email == payload["sub"],
-                    User.is_active.is_(True)
+            payload = verify_token(token)
+            if not is_blacklisted(payload.get("jti", "")):
+                user = db.scalar(
+                    select(User).where(
+                        User.id == int(payload["sub"]),
+                        User.is_active.is_(True)
+                    )
                 )
-            )
-        except ValueError:
+        except (ValueError, KeyError):
             pass
 
     return {

@@ -4,17 +4,18 @@ from ariadne import load_schema_from_path, make_executable_schema
 from ariadne.asgi import GraphQL
 
 from app.graphql.resolvers import (
-    query, mutation, user_type, client_type, audit_type
+    query, mutation,
+    user_type, client_type, audit_type,
+    session_type, refresh_info_type, secret_payload_type,
 )
 from app.graphql.context import get_context_value
 from app.graphql.directives import (
     IsAuthenticatedDirective,
-    IsAdminDirective
+    IsAdminDirective,
 )
 
 
 schema_path = Path(__file__).with_name("schema.graphql")
-
 type_defs = load_schema_from_path(str(schema_path))
 
 schema = make_executable_schema(
@@ -24,14 +25,17 @@ schema = make_executable_schema(
     user_type,
     client_type,
     audit_type,
+    session_type,
+    refresh_info_type,
+    secret_payload_type,
     directives={
         "isAuthenticated": IsAuthenticatedDirective,
-        "isAdmin": IsAdminDirective
+        "isAdmin": IsAdminDirective,
     }
 )
 
 graphql_app = GraphQL(
     schema,
     context_value=get_context_value,
-    debug=True
+    debug=True,
 )
